@@ -4,6 +4,10 @@ from src.config.settings import settings
 
 app = FastAPI(title="Text Processing API")
 
+@app.get("/")
+def root():
+    return {"message": "Text Processing API is running", "endpoints": ["/health", "/summarize", "/analyze-sentiment"]}
+
 @app.get("/health")
 def health():
     return {"status": "healthy"}
