@@ -1,0 +1,161 @@
+1️⃣ The endpoint definition
+@app.post("/summarize")
+def summarize(payload: dict):
+
+
+This tells FastAPI:
+
+This endpoint accepts HTTP POST requests
+
+The request body is expected to be JSON
+
+FastAPI should parse that JSON into a Python dictionary
+
+That dictionary is passed into the function as payload
+
+So FastAPI is doing this automatically for you:
+
+JSON (request body) → Python dict → payload
+
+2️⃣ How the client must send data
+
+The client must send a JSON body, not form data, not query params.
+
+Example HTTP request
+POST /summarize
+Content-Type: application/json
+
+{
+  "text": "Albert Einstein believed curiosity was more important than knowledge."
+}
+
+
+FastAPI:
+
+Reads the body
+
+Sees Content-Type: application/json
+
+Converts it into:
+
+payload = {
+    "text": "Albert Einstein believed curiosity was more important than knowledge."
+}
+
+3️⃣ What this line does
+text = payload.get("text")
+
+
+Looks for the key "text" in the dictionary
+
+If it exists → returns the value
+
+If it does not exist → returns None
+
+4️⃣ Validation logic
+if not text:
+    raise HTTPException(status_code=400, detail="Text is required")
+
+
+This catches:
+
+Missing "text"
+
+Empty string ""
+
+null
+
+FastAPI then returns:
+
+{
+  "detail": "Text is required"
+}
+
+
+with HTTP status 400 Bad Request.
+
+5️⃣ Business logic
+summary = summarize_text(text)
+
+
+summarize_text is your own function
+
+It receives a string
+
+It returns a string summary
+
+FastAPI does not care what happens inside this function.
+
+6️⃣ Response serialization
+return {
+    "summary": summary,
+    "original_length": len(text),
+    "summary_length": len(summary)
+}
+
+
+FastAPI:
+
+Takes the returned Python dict
+
+Converts it to JSON
+
+Sends it back to the client
+
+Example response
+{
+  "summary": "Einstein valued curiosity over memorization.",
+  "original_length": 74,
+  "summary_length": 46
+}
+
+7️⃣ How to test it
+Using curl
+curl -X POST http://localhost:8000/summarize \
+     -H "Content-Type: application/json" \
+     -d '{"text":"Albert Einstein believed curiosity was more important than knowledge."}'
+
+Using Swagger UI
+
+Go to:
+http://localhost:8000/docs
+
+Click POST /summarize
+
+Click Try it out
+
+Enter:
+
+{
+  "text": "Albert Einstein believed curiosity was more important than knowledge."
+}
+
+8️⃣ Important note (why people use Pydantic)
+
+Right now:
+
+payload can be anything
+
+No schema
+
+No auto validation
+
+Docs are vague
+
+With Pydantic, FastAPI would:
+
+Validate automatically
+
+Reject bad requests before your function runs
+
+Generate better /docs
+
+But for learning, this dict-based version is perfectly valid and easier to understand.
+
+Mental model (keep this)
+
+FastAPI does not magically guess input.
+It simply:
+
+JSON body → Python dict → your function
+
